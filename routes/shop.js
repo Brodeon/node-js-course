@@ -10,7 +10,7 @@ router.get('/', (req, res, next) => {
     // res.sendFile(path.join(rootDir, 'views', 'shop.pug')); //bez puga
 
     const products = adminData.products;
-    res.render('shop', {prods: products, docTitle: 'My Shop', path: '/shop', title: 'Shop'}); //z pugiem
+    res.render('shop', {prods: products, docTitle: 'My Shop', path: '/shop', title: 'Shop'});
 })
 
 module.exports = router;

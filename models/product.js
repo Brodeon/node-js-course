@@ -13,6 +13,7 @@ module.exports = class Product {
     }
 
     save() {
+        this.id = Math.random().toString();
         Product.getProductsFromFile(products => {
             const p = pa.join(pa.dirname(process.mainModule.filename), 'data', 'products.json');
             products.push(this);
@@ -34,6 +35,13 @@ module.exports = class Product {
             }
 
             cb(JSON.parse(data));
+        });
+    }
+
+    static findById(id, cb) {
+        this.getProductsFromFile(products => {
+            const product = products.find(p => p.id === id);
+            cb(product);
         });
     }
 

@@ -3,6 +3,7 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const rootDir = require('./util/path');
 const errorController = require('./controllers/error');
+const sequelize = require('./util/database');
 
 const app = express();
 

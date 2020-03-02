@@ -1,5 +1,28 @@
-const Sequelize = require('sequelize').Sequelize;
+const mongodb = require('mongodb');
+const MongoClient = mongodb.MongoClient;
 
-const sequelize = new Sequelize('postgres://postgres:admin@localhost:5432/nodejs-course')
+let _db;
 
-module.exports = sequelize;
+const mongoConnect = async (callback) => {
+    try {
+        const client = await MongoClient.connect('', {useUnifiedTopology: true});
+        console.log('CONNECTED');
+        _db = client.db();
+        callback();
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+const getDb = () => {
+    if (_db) {
+        return _db;
+    }
+
+    throw 'No db found!';
+}
+
+
+exports.mongoConnect = mongoConnect;
+exports.getDb = getDb;

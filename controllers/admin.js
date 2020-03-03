@@ -15,7 +15,7 @@ exports.postAddProduct = async (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
 
-  const product = new Product(title, price, description, imageUrl);
+  const product = new Product(title, price, description, imageUrl, req.user._id);
   await product.save();
   res.redirect('/');
 };
@@ -50,7 +50,7 @@ exports.postEditProduct = async (req, res, next) => {
     const updatedImageUrl = req.body.imageUrl;
     const updatedDesc = req.body.description;
 
-    const product = await Product.findByPk(prodId);
+    const product = await Product.findById(prodId);
     product.title = updatedTitle;
     product.price = updatedPrice;
     product.imageUrl = updatedImageUrl;

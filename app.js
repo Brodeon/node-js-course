@@ -6,7 +6,7 @@ const errorController = require('./controllers/error');
 const database = require('./util/database');
 // const sequelize = require('./util/sql/database');
 // const Product = require('./models/product')
-// const User = require('./models/user');
+const User = require('./models/user');
 // const Cart = require('./models/cart');
 // const CartItem = require('./models/cart-item');
 // const Order = require('./models/order');
@@ -22,6 +22,12 @@ const shopRoutes = require('./routes/shop');
 
 app.use(bodyParser.urlencoded());
 app.use(express.static(path.join(rootDir, 'public')));
+
+app.use(async (req, res, next) => {
+    const user = await User.findById('5e5e878b2117c941544dd694');
+    req.user = user;
+    next();
+});
 
 // app.use(async (req, res, next) => {
 //     try {
@@ -76,6 +82,6 @@ app.use(errorController.get404);
 //         console.log(err);
 //     });
 
-database.mongoConnect(() => {
+database.mongoConnect(async () => {
     app.listen(3000);
 }); 

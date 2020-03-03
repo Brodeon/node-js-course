@@ -1,5 +1,4 @@
 const Product = require('../models/product');
-const Cart = require('../models/cart');
 
 exports.getProducts = async (req, res, next) => {
   try {
@@ -30,7 +29,7 @@ exports.getProduct = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
   try {
-    const products = await Product.findAll();
+    const products = await Product.fetchAll();
     res.render('shop/index', {
       prods: products,
       pageTitle: 'Shop',
@@ -58,31 +57,9 @@ exports.getCart = async (req, res, next) => {
 exports.postCart = async (req, res, next) => {
   try {
     const prodId = req.body.productId;
-    const cart = await req.user.getCart()
-
-    const products = await cart.getProducts({where: {id: prodId}});
-    let product;
-    if (products.length > 0) {
-      product = products[0];
-    }
+    const product = await Product.findById(prodId);
+    await req.user.addToCart(product);
     
-    let quantity = 1;
-    if (product) {
-      const oldQuantity = product.cartItem.quantity;
-      quantity = oldQuantity + 1;
-      await cart.addProduct(product, {
-        through: {
-          quantity: quantity
-        }
-      });
-    } else {
-      const fetchedProduct = await Product.findByPk(prodId);
-      await cart.addProduct(fetchedProduct, {
-        through: {
-          quantity: quantity
-        }
-      });
-    }
 
     res.redirect('/cart');
   } catch (error) {

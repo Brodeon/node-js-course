@@ -2,7 +2,7 @@ const Product = require('../models/product');
 
 exports.getProducts = async (req, res, next) => {
   try {
-    const products = await Product.fetchAll();
+    const products = await Product.find();
     res.render('shop/product-list', {
       prods: products,
       pageTitle: 'All Products',
@@ -29,7 +29,7 @@ exports.getProduct = async (req, res, next) => {
 
 exports.getIndex = async (req, res, next) => {
   try {
-    const products = await Product.fetchAll();
+    const products = await Product.find();
     res.render('shop/index', {
       prods: products,
       pageTitle: 'Shop',
@@ -42,12 +42,12 @@ exports.getIndex = async (req, res, next) => {
 
 exports.getCart = async (req, res, next) => {
   try {
-    const cart = await req.user.getCart();
-    const cartProducts = await cart.getProducts();
+    const user = await req.user.populate('cart.items.productId').execPopulate();
+    console.log(user.cart.items);
     res.render('shop/cart', {
       path: '/cart',
       pageTitle: 'Your Cart',
-      products: cartProducts
+      products: user.cart.items
     });
   } catch (error) {
     console.log(error);
@@ -60,7 +60,6 @@ exports.postCart = async (req, res, next) => {
     const product = await Product.findById(prodId);
     await req.user.addToCart(product);
     
-
     res.redirect('/cart');
   } catch (error) {
     console.log(error);
@@ -70,11 +69,7 @@ exports.postCart = async (req, res, next) => {
 exports.postCartDeleteProduct = async (req, res, next) => {
   try {
     const prodId = req.body.productId;
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts({where: {id: prodId}});
-    const product = products[0];
-
-    cart.removeProduct(product);
+    await req.user.deleteItemFromCart(prodId);
 
     res.redirect('/cart');
   } catch (error) {
@@ -84,17 +79,7 @@ exports.postCartDeleteProduct = async (req, res, next) => {
 
 exports.postOrder = async (req, res, next) => {
   try {
-    const cart = await req.user.getCart();
-    const products = await cart.getProducts();
-
-    const order = await req.user.createOrder();
-    await order.addProducts(products.map(pr => {
-      pr.orderItem = {quantity: pr.cartItem.quantity};
-      return pr;
-    }));
-
-    await cart.setProducts(null);
-
+    await req.user.addOrder();
     res.redirect('/orders')    
   } catch (error) {
     console.log(error);
@@ -103,7 +88,8 @@ exports.postOrder = async (req, res, next) => {
 
 exports.getOrders = async (req, res, next) => {
   try {
-    const orders = await req.user.getOrders({include: ['products']});
+    const orders = await req.user.getOrders();
+    console.log(orders.items);
     res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',

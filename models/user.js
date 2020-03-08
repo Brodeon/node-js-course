@@ -48,11 +48,24 @@ userSchema.methods.addToCart = async function(product) {
         const updatedCart = {items: updatedCartItems};
         this.cart = updatedCart;
         return this.save();
-        // .updateOne({_id: new mongodb.ObjectId(this._id)}, {$set: {cart: updatedCart}});
     } catch (error) {
         console.log(error);
         throw error;
     }
+}
+
+userSchema.methods.deleteItemFromCard = async function deleteItemFromCart(id) {
+    const db = getDb();
+    const updatedCartItems = this.cart.items.filter(i => {
+        return i.productId.toString() !== id.toString();
+    });
+    this.cart.items = updatedCartItems;
+    this.cart.save().exec();
+}
+
+userSchema.methods.clearCart = async function() {
+    this.cart = {items: []};
+    await this.save();
 }
 
 module.exports = mongoose.model('User', userSchema);

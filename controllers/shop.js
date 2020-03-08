@@ -1,4 +1,5 @@
 const Product = require('../models/product');
+const Order = require('../models/order');
 
 exports.getProducts = async (req, res, next) => {
   try {
@@ -79,7 +80,24 @@ exports.postCartDeleteProduct = async (req, res, next) => {
 
 exports.postOrder = async (req, res, next) => {
   try {
-    await req.user.addOrder();
+    const user = await req.user.populate('cart.items.productId').execPopulate();
+    console.log(user.cart.items);
+    const products =  user.cart.items.map(i => {
+      return {
+        productData: {...i.productId._doc},
+        quantity: i.quantity
+      }
+    });
+    
+    const order = new Order({
+      products: products,
+      user: {
+        username: req.user.username,
+        userId: req.user,
+      }
+    });
+    await order.save();
+    await user.clearCart();
     res.redirect('/orders')    
   } catch (error) {
     console.log(error);
@@ -88,8 +106,8 @@ exports.postOrder = async (req, res, next) => {
 
 exports.getOrders = async (req, res, next) => {
   try {
-    const orders = await req.user.getOrders();
-    console.log(orders.items);
+    const orders = await Order.find({'user.userId': req.user._id}).exec();
+    console.log(orders);
     res.render('shop/orders', {
       path: '/orders',
       pageTitle: 'Your Orders',
